@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Bowl Quizzo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #002244;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #69BE28;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #002244;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #002244;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #002244;
+            border-bottom-color: #002244;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #002244;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #002244;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #002244;
+        }
+
+        .question {
+            background-color: #A5acaf;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .category-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #002244;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+
+        .question h3 {
+            margin-bottom: 10px;
+            color: #002244;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .question p {
+            margin-bottom: 15px;
+            color: #002244;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .options.two-col {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .options.one-col {
+            grid-template-columns: 1fr;
+        }
+
+        .option {
+            padding: 12px;
+            border: 2px solid #002244;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+
+        .option.selected {
+            background-color: #002244;
+            color: white;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #002244;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .leaderboard-table th {
+            background-color: #A5acaf;
+            font-weight: 600;
+            color: #002244;
+        }
+
+        .leaderboard-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .rank {
+            font-weight: 700;
+            color: #002244;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #002244;
+        }
+
+        .admin-question {
+            background-color: #A5acaf;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .admin-controls button {
+            padding: 8px 16px;
+            border: 2px solid #002244;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-controls button.selected {
+            background-color: #002244;
+            color: white;
+        }
+
+        .remove-btn {
+            background-color: #dc3545 !important;
+            color: white !important;
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏈 Super Bowl Quizzo</h1>
+            <p>The Real Game Starts Now!</p>
+        </div>
+
+        <div class="content">
+            <div class="tab-container">
+                <button class="tab active" onclick="switchTab('submit')">Submit Entry</button>
+                <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
+                <button class="tab" onclick="switchTab('admin')">Admin</button>
+            </div>
+
+            <!-- Submit Entry Tab -->
+            <div id="submit-tab" class="tab-content active">
+                <div id="submit-message"></div>
+                
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="Enter your phone number" required>
+                </div>
+
+                <div id="questions-container"></div>
+
+                <button class="btn" onclick="submitEntry()">Submit Entry</button>
+            </div>
+
+            <!-- Leaderboard Tab -->
+            <div id="leaderboard-tab" class="tab-content">
+                <h2 style="color: #002244; margin-bottom: 20px;">🏆 Leaderboard</h2>
+                <div id="leaderboard-container"></div>
+                <button class="btn" onclick="loadLeaderboard()" style="margin-top: 20px;">Refresh Leaderboard</button>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="admin-tab" class="tab-content">
+                <div id="admin-message"></div>
+                
+                <div id="admin-login">
+                    <div class="form-group">
+                        <label for="admin-password">Admin Password</label>
+                        <input type="password" id="admin-password" placeholder="Enter admin password">
+                        <button class="btn" onclick="loginAdmin()" style="margin-top: 10px;">Login</button>
+                    </div>
+                </div>
+
+                <div id="admin-panel" style="display: none;">
+                    <h3 style="color: #002244; margin-bottom: 20px;">Manage Questions & Answers</h3>
+                    <div id="admin-questions-container"></div>
+                    <button class="btn" onclick="saveAnswers()" style="margin-top: 20px;">Save Correct Answers</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7msdLM_7pqNZSQ0DE-DxzJwdd_2i_4Pg",
+            authDomain: "superbowlquizzo.firebaseapp.com",
+            projectId: "superbowlquizzo",
+            storageBucket: "superbowlquizzo.firebasestorage.app",
+            messagingSenderId: "455569328186",
+            appId: "1:455569328186:web:5e61501a88bb59b9e4cd03"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Global variables
+        let currentAnswers = {};
+        let questions = [];
+        let isAdminLoggedIn = false;
+        const ADMIN_PASSWORD = 'Tenn!$B@g4$';
+
+        // Default questions
+        const defaultQuestions = [
+            // Category 1: Pre-Game and Entertainment
+            { id: 1, text: "Isn't spending time with friends great!?", options: ["Yes!"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 2, text: "Will Charlie Puth be clean shaven or have facial hair?", options: ["Clean Shaven", "Facial Hair"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 3, text: "National Anthem length: Over or Under 2 minutes?", options: ["Over", "Under"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 4, text: "Will a player or coach cry during the national anthem?", options: ["Yes", "No"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 5, text: "Will the broadcast mention Taylor Swift?", options: ["Yes", "No"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 6, text: "Coin Toss result:", options: ["Heads", "Tails"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 7, text: "First commercial category shown after the kickoff:", options: ["Beer", "Auto", "Tech", "Insurance", "Fast Food"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 8, text: "Will Bad Bunny change outfits during the halftime show?", options: ["Yes", "No"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 9, text: "Will Bad Bunny wear sunglasses at any point during the show?", options: ["Yes", "No"], answer: null, category: "Pre-Game and Entertainment" },
+            { id: 10, text: "Will Bad Bunny bring out any surprise guests?", options: ["Yes", "No"], answer: null, category: "Pre-Game and Entertainment" },
+            // Category 2: Game Play Questions
+            { id: 11, text: "Will the first play on offense be a pass or a run?", options: ["Pass", "Run"], answer: null, category: "Game Play Questions" },
+            { id: 12, text: "Will there be a penalty called on the opening drive of the game? (excluding kickoff)", options: ["Yes", "No"], answer: null, category: "Game Play Questions" },
+            { id: 13, text: "Will there be a touchdown in the first 6 minutes of the game?", options: ["Yes", "No"], answer: null, category: "Game Play Questions" },
+            { id: 14, text: "Type of first points scored:", options: ["Touchdown", "Field Goal", "Safety (5 bonus points)"], answer: null, category: "Game Play Questions" },
+            { id: 15, text: "Will either team go for it on 4th down in the first half? (i.e. No punt or Field Goal on 4th down?)", options: ["Yes", "No"], answer: null, category: "Game Play Questions" },
+            { id: 16, text: "Longest Touchdown of the game:", options: ["Under 40 Yards", "40+ Yards"], answer: null, category: "Game Play Questions" },
+            { id: 17, text: "Will there be a successful coach's challenge?", options: ["Yes", "No"], answer: null, category: "Game Play Questions" },
+            { id: 18, text: "What will the winning margin be?", options: ["1-7 points", "8-14 points", "15+ points"], answer: null, category: "Game Play Questions" },
+            { id: 19, text: "Will the MVP be a quarterback?", options: ["Yes", "No"], answer: null, category: "Game Play Questions" },
+            { id: 20, text: "Will the game go to overtime?", options: ["Yes", "No"], answer: null, category: "Game Play Questions" },
+            { id: 21, text: "Tiebreaker! – Total Combined Score", options: ["number"], answer: null, category: "Tiebreaker", isNumeric: true }
+        ];
+
+        // Initialize app
+        async function init() {
+            await loadQuestions();
+            renderQuestions();
+            await loadLeaderboard();
+        }
+
+        // Load questions from Firebase
+        async function loadQuestions() {
+            try {
+                const docRef = doc(db, 'settings', 'questions');
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    questions = docSnap.data().list;
+                } else {
+                    questions = defaultQuestions;
+                    // Save default questions to Firebase
+                    await setDoc(doc(db, 'settings', 'questions'), { list: defaultQuestions });
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                questions = defaultQuestions;
+            }
+        }
+
+        // Render questions for users
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            let currentCategory = '';
+
+            questions.forEach((q, index) => {
+                // Add category header if it's a new category
+                if (q.category && q.category !== currentCategory) {
+                    currentCategory = q.category;
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category-header';
+                    categoryDiv.textContent = currentCategory;
+                    container.appendChild(categoryDiv);
+                }
+
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                
+                let optionsHTML = '';
+                
+                if (q.isNumeric) {
+                    optionsHTML = `
+                        <input 
+                            type="number" 
+                            id="answer-${q.id}" 
+                            placeholder="Enter total combined score"
+                            value="${currentAnswers[q.id] || ''}"
+                            onchange="selectAnswer(${q.id}, this.value)"
+                        >
+                    `;
+                } else {
+                    const gridClass = q.options && q.options.length > 2 ? 'one-col' : 'two-col';
+                    optionsHTML = `<div class="options ${gridClass}">`;
+                    
+                    if (q.options) {
+                        q.options.forEach(option => {
+                            const isSelected = currentAnswers[q.id] === option;
+                            optionsHTML += `
+                                <div class="option ${isSelected ? 'selected' : ''}" 
+                                     onclick="selectAnswer(${q.id}, '${option.replace(/'/g, "\\'")}')">
+                                    ${option}
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    optionsHTML += '</div>';
+                }
+
+                questionDiv.innerHTML = `
+                    <h3>Question ${index + 1}</h3>
+                    <p>${q.text}</p>
+                    ${optionsHTML}
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+        }
+
+        // Select answer
+        window.selectAnswer = function(questionId, answer) {
+            currentAnswers[questionId] = answer;
+            renderQuestions();
+        }
+
+        // Submit entry
+        window.submitEntry = async function() {
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!name || !phone) {
+                showSubmitMessage('Please enter your name and phone number', 'error');
+                return;
+            }
+
+            if (Object.keys(currentAnswers).length !== questions.length) {
+                showSubmitMessage('Please answer all questions', 'error');
+                return;
+            }
+
+            try {
+                const entry = {
+                    name,
+                    phone,
+                    answers: currentAnswers,
+                    timestamp: Date.now()
+                };
+
+                await addDoc(collection(db, 'entries'), entry);
+                
+                showSubmitMessage('Entry submitted successfully! Check the leaderboard.', 'success');
+                
+                // Clear form
+                document.getElementById('name').value = '';
+                document.getElementById('phone').value = '';
+                currentAnswers = {};
+                renderQuestions();
+                
+                // Switch to leaderboard
+                setTimeout(() => {
+                    switchTab('leaderboard');
+                    loadLeaderboard();
+                }, 1500);
+            } catch (error) {
+                console.error('Error submitting entry:', error);
+                showSubmitMessage('Error submitting entry. Please try again.', 'error');
+            }
+        }
+
+        // Load and display leaderboard
+        window.loadLeaderboard = async function() {
+            const container = document.getElementById('leaderboard-container');
+            container.innerHTML = '<div class="loading">Loading leaderboard...</div>';
+
+            try {
+                const querySnapshot = await getDocs(collection(db, 'entries'));
+                const entries = [];
+
+                querySnapshot.forEach((doc) => {
+                    entries.push(doc.data());
+                });
+
+                // Calculate scores
+                const scoredEntries = entries.map(entry => {
+                    let score = 0;
+                    let answeredQuestions = 0;
+                    let tiebreakerDiff = null;
+
+                    questions.forEach(q => {
+                        if (q.answer !== null && q.answer !== '' && entry.answers[q.id]) {
+                            answeredQuestions++;
+                            
+                            if (q.isNumeric) {
+                                const userGuess = parseInt(entry.answers[q.id]);
+                                const actualScore = parseInt(q.answer);
+                                if (!isNaN(userGuess) && !isNaN(actualScore)) {
+                                    tiebreakerDiff = Math.abs(userGuess - actualScore);
+                                }
+                            } else {
+                                if (entry.answers[q.id] === q.answer) {
+                                    score++;
+                                    
+                                    // Add bonus points for Safety
+                                    if (q.answer === "Safety (5 bonus points)") {
+                                        score += 4;
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    return {
+                        ...entry,
+                        score,
+                        answeredQuestions,
+                        tiebreakerDiff
+                    };
+                });
+
+                // Sort by score, then by tiebreaker
+                scoredEntries.sort((a, b) => {
+                    if (b.score !== a.score) {
+                        return b.score - a.score;
+                    }
+                    if (a.tiebreakerDiff !== null && b.tiebreakerDiff !== null) {
+                        return a.tiebreakerDiff - b.tiebreakerDiff;
+                    }
+                    return 0;
+                });
+
+                // Display leaderboard
+                if (scoredEntries.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 40px; color: #002244;">No entries yet. Be the first to submit!</p>';
+                } else {
+                    let tableHTML = `
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Name</th>
+                                    <th>Score</th>
+                                    <th>Tiebreaker</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    scoredEntries.forEach((entry, index) => {
+                        tableHTML += `
+                            <tr>
+                                <td class="rank">#${index + 1}</td>
+                                <td>${entry.name}</td>
+                                <td>${entry.score} / ${entry.answeredQuestions}</td>
+                                <td>${entry.tiebreakerDiff !== null ? '±' + entry.tiebreakerDiff : '-'}</td>
+                            </tr>
+                        `;
+                    });
+
+                    tableHTML += '</tbody></table>';
+                    container.innerHTML = tableHTML;
+                }
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                container.innerHTML = '<p style="text-align: center; padding: 40px; color: #dc3545;">Error loading leaderboard</p>';
+            }
+        }
+
+        // Admin login
+        window.loginAdmin = function() {
+            const password = document.getElementById('admin-password').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                renderAdminQuestions();
+                showAdminMessage('Login successful!', 'success');
+            } else {
+                showAdminMessage('Incorrect password', 'error');
+            }
+        }
+
+        // Render admin questions
+        function renderAdminQuestions() {
+            const container = document.getElementById('admin-questions-container');
+            container.innerHTML = '';
+
+            questions.forEach((q) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'admin-question';
+                
+                let answerHTML = '';
+                
+                if (q.isNumeric) {
+                    answerHTML = `
+                        <input 
+                            type="number" 
+                            value="${q.answer || ''}"
+                            placeholder="Enter correct total score"
+                            onchange="setCorrectAnswer(${q.id}, this.value)"
+                            style="width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #002244; border-radius: 6px;"
+                        >
+                    `;
+                } else {
+                    answerHTML = '<div class="admin-controls">';
+                    
+                    if (q.options) {
+                        q.options.forEach(option => {
+                            const isSelected = q.answer === option;
+                            answerHTML += `
+                                <button 
+                                    class="${isSelected ? 'selected' : ''}"
+                                    onclick="setCorrectAnswer(${q.id}, '${option.replace(/'/g, "\\'")}')">
+                                    ${option}
+                                </button>
+                            `;
+                        });
+                    }
+                    
+                    const isNotSet = q.answer === null;
+                    answerHTML += `
+                        <button 
+                            class="${isNotSet ? 'selected' : ''}"
+                            onclick="setCorrectAnswer(${q.id}, null)">
+                            Not Set
+                        </button>
+                    `;
+                    
+                    answerHTML += '</div>';
+                }
+
+                questionDiv.innerHTML = `
+                    <h4 style="color: #002244; margin-bottom: 10px;">${q.text}</h4>
+                    <label style="display: block; margin-bottom: 10px; color: #002244; font-weight: 600;">Correct Answer:</label>
+                    ${answerHTML}
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+        }
+
+        // Set correct answer
+        window.setCorrectAnswer = function(questionId, answer) {
+            const question = questions.find(q => q.id === questionId);
+            if (question) {
+                question.answer = answer;
+                renderAdminQuestions();
+            }
+        }
+
+        // Save answers to Firebase
+        window.saveAnswers = async function() {
+            try {
+                await setDoc(doc(db, 'settings', 'questions'), { list: questions });
+                showAdminMessage('Answers saved! Leaderboard will update automatically.', 'success');
+                await loadLeaderboard();
+            } catch (error) {
+                console.error('Error saving answers:', error);
+                showAdminMessage('Error saving answers', 'error');
+            }
+        }
+
+        // Switch tabs
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            if (tabName === 'leaderboard') {
+                loadLeaderboard();
+            }
+        }
+
+        // Show messages
+        function showSubmitMessage(text, type) {
+            const container = document.getElementById('submit-message');
+            container.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function showAdminMessage(text, type) {
+            const container = document.getElementById('admin-message');
+            container.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
