@@ -277,6 +277,44 @@
             border-radius: 6px;
             cursor: pointer;
         }
+
+        /* NEW STYLES FOR DELETE FEATURE - Lines 268-297 */
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .admin-leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .admin-leaderboard-table th,
+        .admin-leaderboard-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .admin-leaderboard-table th {
+            background-color: #A5acaf;
+            font-weight: 600;
+            color: #002244;
+        }
+        /* END NEW STYLES */
     </style>
 </head>
 <body>
@@ -331,19 +369,32 @@
                     </div>
                 </div>
 
+                <!-- UPDATED ADMIN PANEL - Lines 370-387 -->
                 <div id="admin-panel" style="display: none;">
-                    <h3 style="color: #002244; margin-bottom: 20px;">Manage Questions & Answers</h3>
-                    <div id="admin-questions-container"></div>
-                    <button class="btn" onclick="saveAnswers()" style="margin-top: 20px;">Save Correct Answers</button>
+                    <h3 style="color: #002244; margin-bottom: 20px;">Admin Panel</h3>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="color: #002244; margin-bottom: 15px;">Manage Entries</h4>
+                        <div id="admin-entries-container"></div>
+                        <button class="btn" onclick="loadAdminEntries()" style="margin-top: 10px;">Refresh Entries</button>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #002244; margin-bottom: 15px;">Manage Questions & Answers</h4>
+                        <div id="admin-questions-container"></div>
+                        <button class="btn" onclick="saveAnswers()" style="margin-top: 20px;">Save Correct Answers</button>
+                    </div>
                 </div>
+                <!-- END UPDATED ADMIN PANEL -->
             </div>
         </div>
     </div>
 
     <!-- Firebase SDKs -->
     <script type="module">
+        /* UPDATED IMPORT - Line 397 - Added deleteDoc */
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -627,6 +678,7 @@
             }
         }
 
+        /* NEW ADMIN FUNCTIONS - Lines 687-762 */
         // Admin login
         window.loginAdmin = function() {
             const password = document.getElementById('admin-password').value;
@@ -636,11 +688,92 @@
                 document.getElementById('admin-login').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'block';
                 renderAdminQuestions();
+                loadAdminEntries();
                 showAdminMessage('Login successful!', 'success');
             } else {
                 showAdminMessage('Incorrect password', 'error');
             }
         }
+
+        // Load entries for admin to manage
+        window.loadAdminEntries = async function() {
+            const container = document.getElementById('admin-entries-container');
+            container.innerHTML = '<div class="loading">Loading entries...</div>';
+
+            try {
+                const querySnapshot = await getDocs(collection(db, 'entries'));
+                const entries = [];
+
+                querySnapshot.forEach((doc) => {
+                    entries.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                // Sort by timestamp (newest first)
+                entries.sort((a, b) => b.timestamp - a.timestamp);
+
+                if (entries.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 20px; color: #002244;">No entries yet.</p>';
+                } else {
+                    let tableHTML = `
+                        <table class="admin-leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Submitted</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    entries.forEach((entry) => {
+                        const date = new Date(entry.timestamp);
+                        const timeString = date.toLocaleString();
+                        
+                        tableHTML += `
+                            <tr>
+                                <td>${entry.name}</td>
+                                <td>${entry.phone}</td>
+                                <td style="font-size: 12px;">${timeString}</td>
+                                <td>
+                                    <button class="delete-btn" onclick="deleteEntry('${entry.id}', '${entry.name}')">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    tableHTML += '</tbody></table>';
+                    container.innerHTML = tableHTML;
+                }
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                container.innerHTML = '<p style="text-align: center; padding: 20px; color: #dc3545;">Error loading entries</p>';
+            }
+        }
+
+        // Delete entry
+        window.deleteEntry = async function(entryId, entryName) {
+            if (!confirm(`Are you sure you want to delete the entry from ${entryName}? This cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, 'entries', entryId));
+                showAdminMessage(`Entry from ${entryName} deleted successfully!`, 'success');
+                loadAdminEntries();
+                loadLeaderboard();
+            } catch (error) {
+                console.error('Error deleting entry:', error);
+                showAdminMessage('Error deleting entry. Please try again.', 'error');
+            }
+        }
+        /* END NEW ADMIN FUNCTIONS */
 
         // Render admin questions
         function renderAdminQuestions() {
